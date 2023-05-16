@@ -48,6 +48,7 @@
         android:usesCleartextTraffic="false">
 
         <provider android:name="ContactsProvider2"
+            android:initOrder="100"
             android:authorities="contacts;com.android.contacts"
             android:label="@string/provider_label"
             android:multiprocess="false"
@@ -149,6 +150,12 @@
         <provider android:name=".debug.DumpFileProvider"
                   android:authorities="com.android.contacts.dumpfile"
                   android:exported="true"/>
+
+        <provider
+            android:name=".ScopedContactsProvider"
+            android:initOrder="1"
+            android:authorities="com.android.contacts.scoped"
+            android:exported="true"/>
 
     </application>
 </manifest>
