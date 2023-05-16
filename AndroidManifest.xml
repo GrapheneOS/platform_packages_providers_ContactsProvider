@@ -134,5 +134,10 @@
             android:exported="true">
         </provider>
 
+        <provider
+            android:name=".ScopedContactsProvider"
+            android:authorities="com.android.contacts.scoped"
+            android:exported="true"/>
+
     </application>
 </manifest>
