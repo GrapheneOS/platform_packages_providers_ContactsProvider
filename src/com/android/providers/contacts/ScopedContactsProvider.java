@@ -472,4 +472,36 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
             dst.addAll(arr);
         }
     }
+
+    private void checkContactScopesUiCaller() {
+        // UI is implemented in PermissionController
+        requireContext().enforceCallingPermission(Manifest.permission.GRANT_RUNTIME_PERMISSIONS, null);
+    }
+
+    @Nullable
+    @Override
+    public Bundle call(String method, @Nullable String arg, @Nullable Bundle extras) {
+        Bundle superRes = super.call(method, arg, extras);
+
+        switch (method) {
+            case ContactScopesApi.METHOD_GET_IDS_FROM_URIS: {
+                checkContactScopesUiCaller();
+                Uri[] uris = extras.getParcelableArray(ContactScopesApi.KEY_URIS, Uri.class);
+                return Binder.withCleanCallingIdentity(() ->
+                        ContactScopesUiHelper.getIdsFromUris(this, uris));
+            }
+            case ContactScopesApi.METHOD_GET_VIEW_MODEL: {
+                checkContactScopesUiCaller();
+                return Binder.withCleanCallingIdentity(() ->
+                        ContactScopesUiHelper.getAppScopesViewModel(this, arg));
+            }
+            case ContactScopesApi.METHOD_GET_GROUPS: {
+                checkContactScopesUiCaller();
+                return Binder.withCleanCallingIdentity(() ->
+                        ContactScopesUiHelper.getGroups(this));
+            }
+        }
+
+        return superRes;
+    }
 }
