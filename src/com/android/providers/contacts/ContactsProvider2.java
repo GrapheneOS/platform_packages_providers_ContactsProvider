@@ -6452,7 +6452,7 @@ public class ContactsProvider2 extends AbstractContactsProvider
         }
     }
 
-    private static Cursor createEmptyCursor(final Uri uri,
+    static Cursor createEmptyCursor(final Uri uri,
             String[] projection, boolean restrictDataColumns) {
         projection = projection == null
                 ? getDefaultProjection(uri, restrictDataColumns) : projection;
