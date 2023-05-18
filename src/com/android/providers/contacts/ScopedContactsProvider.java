@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.ArraySet;
 import android.util.Log;
 import android.util.LongArray;
 
@@ -167,6 +168,11 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
         return provider.query(uri, projection, sel.toString(), selectionArgs, sortOrder);
     }
 
+    private final ArraySet<String> ALLOWED_CURSOR_EXTRAS = new ArraySet<>(new String[] {
+            ContactsContract.Contacts.EXTRA_ADDRESS_BOOK_INDEX_COUNTS,
+            ContactsContract.Contacts.EXTRA_ADDRESS_BOOK_INDEX_TITLES,
+    });
+
     private MatrixCursor cursorToMatrixCursor(@Nullable Cursor c) {
         if (c == null) {
             return null;
@@ -231,6 +237,16 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
         if (notificationUri != null) {
             mc.setNotificationUri(requireContext().getContentResolver(), notificationUri);
         }
+
+        Bundle extras = c.getExtras();
+
+        for (String k : extras.keySet()) {
+            if (!ALLOWED_CURSOR_EXTRAS.contains(k)) {
+                extras.remove(k);
+            }
+        }
+
+        mc.setExtras(extras);
 
         return mc;
     }
