@@ -227,7 +227,7 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
             mc.addRow(columns);
         }
 
-        Uri notificationUri = mc.getNotificationUri();
+        Uri notificationUri = c.getNotificationUri();
         if (notificationUri != null) {
             mc.setNotificationUri(requireContext().getContentResolver(), notificationUri);
         }
