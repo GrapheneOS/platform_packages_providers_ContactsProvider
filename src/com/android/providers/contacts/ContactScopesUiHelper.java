@@ -149,18 +149,22 @@ class ContactScopesUiHelper {
         return null;
     }
 
-    static Bundle getIdFromUri(ScopedContactsProvider scp, Uri uri) {
+    static Bundle getIdsFromUris(ScopedContactsProvider scp, Uri[] uris) {
         String[] proj = { BaseColumns._ID };
-        try (Cursor c = scp.provider.query(uri, proj, null, null)) {
-            if (c != null && c.moveToFirst()) {
-                long id =  c.getLong(0);
-                var res = new Bundle();
-                res.putLong(ContactScopesApi.KEY_ID, id);
-                return res;
-            } else {
-                throw new IllegalArgumentException();
+        final int len = uris.length;
+        long[] ids = new long[len];
+        for (int i = 0; i < len; ++i) {
+            try (Cursor c = scp.provider.query(uris[i], proj, null, null)) {
+                if (c != null && c.moveToFirst()) {
+                    ids[i] = c.getLong(0);
+                } else {
+                    return null;
+                }
             }
         }
+        var res = new Bundle();
+        res.putLongArray(ContactScopesApi.KEY_IDS, ids);
+        return res;
     }
 
     private static final String[] GROUP_PROJECTION = { BaseColumns._ID,
