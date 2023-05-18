@@ -484,11 +484,11 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
         Bundle superRes = super.call(method, arg, extras);
 
         switch (method) {
-            case ContactScopesApi.METHOD_GET_ID_FROM_URI: {
+            case ContactScopesApi.METHOD_GET_IDS_FROM_URIS: {
                 checkContactScopesUiCaller();
-                Uri uri = extras.getParcelable(ContactScopesApi.KEY_URI, Uri.class);
+                Uri[] uris = extras.getParcelableArray(ContactScopesApi.KEY_URIS, Uri.class);
                 return Binder.withCleanCallingIdentity(() ->
-                        ContactScopesUiHelper.getIdFromUri(this, uri));
+                        ContactScopesUiHelper.getIdsFromUris(this, uris));
             }
             case ContactScopesApi.METHOD_GET_VIEW_MODEL: {
                 checkContactScopesUiCaller();
