@@ -66,8 +66,15 @@ class ContactScopesUiHelper {
                             title = getDisplayName(scp, rawContactId);
                             detailsUri = getUri(
                                     ContactsContract.RawContacts.CONTENT_URI, rawContactId);
-                            int dataSubtype = Integer.parseInt(
-                                    dataColumns[DATA_COLUMN_IDX_DATA_2]);
+
+                            // data subtype IDs start from 1, -1 will make getTypeLabelResource()
+                            // return the default value ("custom type")
+                            int dataSubtype = -1;
+                            String dataSubtypeString = dataColumns[DATA_COLUMN_IDX_DATA_2];
+                            if (dataSubtypeString != null) {
+                                dataSubtype = Integer.parseInt(dataSubtypeString);
+                            }
+
                             int dataSubtypeRes;
                             switch (type) {
                                 case TYPE_NUMBER:
