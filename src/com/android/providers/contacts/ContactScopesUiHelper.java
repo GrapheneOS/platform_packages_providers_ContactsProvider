@@ -1,5 +1,6 @@
 package com.android.providers.contacts;
 
+import android.annotation.Nullable;
 import android.content.pm.GosPackageState;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -59,37 +60,45 @@ class ContactScopesUiHelper {
                     }
                     case TYPE_NUMBER:
                     case TYPE_EMAIL: {
-                        String[] dataColumns = getDataColumns(scp, id);
-                        if (dataColumns != null) {
-                            long rawContactId = Long.parseLong(
-                                    dataColumns[DATA_COLUMN_IDX_RAW_CONTACT_ID]);
-                            title = getDisplayName(scp, rawContactId);
+                        CommonDataColumns cdc = CommonDataColumns.get(scp, id);
+                        if (cdc != null) {
+                            title = getDisplayName(scp, cdc.rawContactId);
                             detailsUri = getUri(
-                                    ContactsContract.RawContacts.CONTENT_URI, rawContactId);
+                                    ContactsContract.RawContacts.CONTENT_URI, cdc.rawContactId);
 
                             // data subtype IDs start from 1, -1 will make getTypeLabelResource()
                             // return the default value ("custom type")
-                            int dataSubtype = -1;
-                            String dataSubtypeString = dataColumns[DATA_COLUMN_IDX_DATA_2];
-                            if (dataSubtypeString != null) {
-                                dataSubtype = Integer.parseInt(dataSubtypeString);
+                            int dataSubtypeId = -1;
+                            String dataSubtypeDatabaseValue = cdc.subType;
+                            String dataSubtypeName = null;
+                            if (dataSubtypeDatabaseValue != null) {
+                                try {
+                                    dataSubtypeId = Integer.parseInt(dataSubtypeDatabaseValue);
+                                } catch (NumberFormatException e) {
+                                    // even though database value is supposed to be an integer,
+                                    // some apps put strings there, since the actual column type
+                                    // is TEXT
+                                    dataSubtypeName = dataSubtypeDatabaseValue;
+                                }
                             }
 
-                            int dataSubtypeRes;
-                            switch (type) {
-                                case TYPE_NUMBER:
-                                    dataSubtypeRes = ContactsContract.CommonDataKinds.Phone
-                                            .getTypeLabelResource(dataSubtype);
-                                    break;
-                                case TYPE_EMAIL:
-                                    dataSubtypeRes = ContactsContract.CommonDataKinds.Email
-                                            .getTypeLabelResource(dataSubtype);
-                                    break;
-                                default:
-                                    throw new IllegalStateException();
+                            if (dataSubtypeName == null) {
+                                int dataSubtypeRes;
+                                switch (type) {
+                                    case TYPE_NUMBER:
+                                        dataSubtypeRes = ContactsContract.CommonDataKinds.Phone
+                                                .getTypeLabelResource(dataSubtypeId);
+                                        break;
+                                    case TYPE_EMAIL:
+                                        dataSubtypeRes = ContactsContract.CommonDataKinds.Email
+                                                .getTypeLabelResource(dataSubtypeId);
+                                        break;
+                                    default:
+                                        throw new IllegalStateException();
+                                }
+                                dataSubtypeName = res.getString(dataSubtypeRes);
                             }
-                            summary = res.getString(dataSubtypeRes) + ": "
-                                    + dataColumns[DATA_COLUMN_IDX_DATA_1];
+                            summary = dataSubtypeName + ": " + cdc.data1;
                         }
                         break;
                     }
@@ -136,24 +145,33 @@ class ContactScopesUiHelper {
     private static final int DATA_COLUMN_IDX_DATA_1 = 1;
     private static final int DATA_COLUMN_IDX_DATA_2 = 2;
 
-    private static String[] getDataColumns(ScopedContactsProvider scp, long dataId) {
-        Uri uri = getUri(ContactsContract.Data.CONTENT_URI, dataId);
+    /** @see android.provider.ContactsContract.CommonDataKinds.CommonColumns */
+    static class CommonDataColumns {
+        final long rawContactId;
+        final String data1;
+        final String subType;
 
-        String[] dataTableProjection = { ContactsContract.Data.RAW_CONTACT_ID,
-            ContactsContract.Data.DATA1, ContactsContract.Data.DATA2 };
-
-        try (Cursor c = scp.provider.query(uri, dataTableProjection, null, null)) {
-            if (c != null && c.moveToFirst()) {
-                int l = dataTableProjection.length;
-                String[] arr = new String[l];
-                for (int i = 0; i < l; ++i) {
-                    arr[i] = c.getString(i);
-                }
-                return arr;
-            }
+        CommonDataColumns(long rawContactId, String data1, String subType) {
+            this.rawContactId = rawContactId;
+            this.data1 = data1;
+            this.subType = subType;
         }
 
-        return null;
+        @Nullable
+        static CommonDataColumns get(ScopedContactsProvider scp, long dataId) {
+            Uri uri = getUri(ContactsContract.Data.CONTENT_URI, dataId);
+
+            String[] dataTableProjection = { ContactsContract.Data.RAW_CONTACT_ID,
+                ContactsContract.Data.DATA1, ContactsContract.Data.DATA2 };
+
+            try (Cursor c = scp.provider.query(uri, dataTableProjection, null, null)) {
+                if (c != null && c.moveToFirst()) {
+                    return new CommonDataColumns(c.getLong(0), c.getString(1), c.getString(2));
+                }
+            }
+
+            return null;
+        }
     }
 
     static Bundle getIdsFromUris(ScopedContactsProvider scp, Uri[] uris) {
