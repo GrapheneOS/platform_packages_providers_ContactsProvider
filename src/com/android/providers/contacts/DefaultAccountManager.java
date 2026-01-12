@@ -68,19 +68,6 @@ public class DefaultAccountManager {
         mAccountAttributesManager = accountAttributesManager;
     }
 
-    private static synchronized Set<String> getPreconfiguredSystemAccountTypes(Context context) {
-        if (sEligibleSystemCloudAccountTypes == null) {
-            sEligibleSystemCloudAccountTypes = new HashSet<>();
-
-            Resources resources = Resources.getSystem();
-            String[] accountTypesArray =
-                    resources.getStringArray(R.array.config_rawContactsEligibleDefaultAccountTypes);
-
-            sEligibleSystemCloudAccountTypes.addAll(Arrays.asList(accountTypesArray));
-        }
-        return sEligibleSystemCloudAccountTypes;
-    }
-
     @NeededForTesting
     static synchronized void setEligibleSystemCloudAccountTypesForTesting(String[] accountTypes) {
         sEligibleSystemCloudAccountTypes = new HashSet<>(Arrays.asList(accountTypes));
@@ -208,12 +195,7 @@ public class DefaultAccountManager {
     }
 
     private boolean isEligibleSystemCloudAccount(Account account, Account[] systemAccounts) {
-        if (account == null) {
-            return false;
-        }
-
-        return getPreconfiguredSystemAccountTypes(mContext).contains(account.type)
-                || isEligibleCloudAccountByAttributes(account, systemAccounts);
+        return account != null;
     }
 
     private boolean isEligibleCloudAccountByAttributes(Account account, Account[] systemAccounts) {
