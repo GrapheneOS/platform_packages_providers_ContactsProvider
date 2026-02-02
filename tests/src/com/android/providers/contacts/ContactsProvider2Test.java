@@ -168,8 +168,6 @@ public class ContactsProvider2Test extends BaseContactsProvider2Test {
 
     private int mOldMinMatch1;
     private int mOldMinMatch2;
-
-    ContactsDatabaseHelper mMockContactsDatabaseHelper;
     private ContactsProvider2 mContactsProvider2;
     private ContactsDatabaseHelper mDbHelper;
     private BroadcastReceiver mBroadcastReceiver;
@@ -1573,6 +1571,60 @@ public class ContactsProvider2Test extends BaseContactsProvider2Test {
         Uri contactDataUri = Uri.withAppendedPath(contactUri, Contacts.Data.CONTENT_DIRECTORY);
         assertSelection(contactDataUri, values, Data._ID, dataId);
         assertNetworkNotified(true);
+    }
+
+    @Test
+    public void testUpdateFailsWithOnlyCaseMismatchedColumn() {
+        long rawContactId = RawContactUtil.createRawContactWithName(mResolver, "John", "Doe");
+        Uri nameUri = DataUtil.insertStructuredName(mResolver, rawContactId, "Jane", "Smith");
+
+        ContentValues values = new ContentValues();
+        values.put("daTa1", "New Display Name"); // "data1" is the correct case but we used "daTa1"
+        int updateCount = mResolver.update(nameUri, values, null, null);
+
+        // Verify the update was rejected.
+        assertEquals(0, updateCount);
+        assertStoredValue(nameUri, Data.DATA1, "Jane Smith");
+    }
+
+    @Test
+    public void testUpdateSucceedsWithAtLeastOneCaseSensitiveColumn() {
+        long rawContactId = RawContactUtil.createRawContactWithName(mResolver, "John", "Doe");
+        Uri nameUri = DataUtil.insertStructuredName(mResolver, rawContactId, "Jane", "Smith");
+
+        ContentValues values = new ContentValues();
+        values.put("daTa1", "New Display Name"); // Mismatched case
+        values.put("data14", "Some Data");      // Exact case match
+        int updateCount = mResolver.update(nameUri, values, null, null);
+
+        assertEquals(1, updateCount);
+        // Verify both values were updated, including the one with the case-mismatched key.
+        assertStoredValue(nameUri, Data.DATA1, "New Display Name");
+        assertStoredValue(nameUri, Data.DATA14, "Some Data");
+    }
+
+
+    @Test
+    public void testCaseMismatchingFieldUpdatesAreTruncatedToMaxSize() {
+        int maxSize = ContactsDatabaseHelper.getSimpleFieldMaxSize();
+        String tooLong = "D".repeat(maxSize + 100);
+        String expectedTruncated = tooLong.substring(0, maxSize);
+
+        String[] columnVariants = new String[] { "data1", "daTa1", "DATA1", "Data1" };
+
+        for (String column : columnVariants) {
+            long rawContactId = RawContactUtil.createRawContactWithName(mResolver, "John", "Doe");
+            Uri nameUri = DataUtil.insertStructuredName(mResolver, rawContactId, "Jane", "Smith");
+
+            ContentValues values = new ContentValues();
+            values.put(column, tooLong);
+            // At least one case sensitive column match is required for successful update
+            values.put("data14", "Sample Data");
+            mResolver.update(nameUri, values, null, null);
+
+            // Verify data1 was updated and truncated to maxSize
+            assertStoredValue(nameUri, Data.DATA1, expectedTruncated);
+        }
     }
 
     @Test

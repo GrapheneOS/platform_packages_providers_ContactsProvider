@@ -445,11 +445,34 @@ public abstract class DataRowHandler {
 
     protected static void applySimpleFieldMaxSize(ContentValues cv, String column) {
         final int maxSize = ContactsDatabaseHelper.getSimpleFieldMaxSize();
-        String v = cv.getAsString(column);
+        String key = findKey(cv, column);
+        String v = cv.getAsString(key);
         if (v == null || v.length() <= maxSize) {
             return;
         }
         Log.w(TAG, "Truncating field " + column + ": length=" + v.length() + " max=" + maxSize);
         cv.put(column, v.substring(0, maxSize));
+    }
+
+    /**
+     * Returns the key from {@code cv} matching {@code column}, ignoring case.
+     *
+     * <p>Examples:
+     * <ul>
+     * <li>{@code findKey({"data1": "v"}, "data1")} &rarr; "data1"
+     * <li>{@code findKey({"DaTa1": "v"}, "data1")} &rarr; "DaTa1"
+     * <li>{@code findKey({}, "data1")} &rarr; "data1"
+     * </ul>
+     */
+    private static String findKey(ContentValues cv, String column) {
+        if (cv.containsKey(column)) {
+            return column;
+        }
+        for (String key : cv.keySet()) {
+            if (key.equalsIgnoreCase(column)) {
+                return key;
+            }
+        }
+        return column;
     }
 }
