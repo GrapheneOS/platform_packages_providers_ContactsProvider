@@ -81,6 +81,11 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
         checkAccess(callerPackageState);
 
         if (ContactScopesStorage.isEmpty(callerPackageState)) {
+            if (projection != null && projection.length == 1 && BaseColumns._COUNT.equals(projection[0])) {
+                var res = new MatrixCursor(projection, 1);
+                res.addRow(new Object[] { Integer.valueOf(0) });
+                return res;
+            }
             return ContactsProvider2.createEmptyCursor(uri, projection, false);
         }
 
