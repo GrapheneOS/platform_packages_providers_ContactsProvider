@@ -54,4 +54,21 @@ public class SelectionBuilderTest extends FixedAndroidTestCase {
         assertEquals("(A)", new SelectionBuilder("").addClause("A").build());
         assertEquals("(A) AND (B)", new SelectionBuilder("A").addClause("B").build());
     }
+
+    public void testInjection() {
+        try {
+            new SelectionBuilder("1=1)) OR ((1=1");
+            fail("Should have thrown");
+        } catch (IllegalArgumentException expected) {
+            // expected
+        }
+
+        try {
+            SelectionBuilder sb = new SelectionBuilder("A");
+            sb.addClause("1=1)) OR ((1=1");
+            fail("Should have thrown");
+        } catch (IllegalArgumentException expected) {
+            // expected
+        }
+    }
 }
