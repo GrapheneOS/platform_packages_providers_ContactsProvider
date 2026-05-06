@@ -15,6 +15,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.RawContacts.DefaultAccount.DefaultAccountAndState;
 import android.text.TextUtils;
 import android.util.ArraySet;
 import android.util.Log;
@@ -503,6 +504,12 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
         Bundle superRes = super.call(method, arg, extras);
 
         switch (method) {
+            case ContactsContract.RawContacts.DefaultAccount.QUERY_DEFAULT_ACCOUNT_FOR_NEW_CONTACTS_METHOD: {
+                var res = new Bundle();
+                res.putInt(ContactsContract.RawContacts.DefaultAccount.KEY_DEFAULT_ACCOUNT_STATE,
+                        DefaultAccountAndState.DEFAULT_ACCOUNT_STATE_LOCAL);
+                return res;
+            }
             case ContactScopesApi.METHOD_GET_IDS_FROM_URIS: {
                 checkContactScopesUiCaller();
                 Uri[] uris = extras.getParcelableArray(ContactScopesApi.KEY_URIS, Uri.class);
