@@ -445,6 +445,37 @@ public class SearchIndexManagerTest extends BaseContactsProvider2Test {
                 SearchSnippets.SNIPPET, null);
     }
 
+    public void testSearchByArabicNameInnerPart() {
+        // Hussam
+        createRawContactWithDisplayName("\u062D\u0633\u0627\u0645");
+
+        // Hussam is found when typing starts from the middle of the name: "sam", "sa", "am"
+        assertStoredValue(buildSearchUri("\u0633\u0627\u0645"),
+                SearchSnippets.SNIPPET, null);
+        assertStoredValue(buildSearchUri("\u0633\u0627"),
+                SearchSnippets.SNIPPET, null);
+        assertStoredValue(buildSearchUri("\u0627\u0645"),
+                SearchSnippets.SNIPPET, null);
+    }
+
+    public void testSearchByArabicSecondNameInnerPart() {
+        // Hussam Aldin, two names
+        createRawContactWithDisplayName("\u062D\u0633\u0627\u0645 \u0627\u0644\u062F\u064A\u0646");
+
+        // The contact is found by the middle of the second name: "din"
+        assertStoredValue(buildSearchUri("\u062F\u064A\u0646"),
+                SearchSnippets.SNIPPET, null);
+    }
+
+    public void testSearchByArabicNameInnerPartWithLetterVariants() {
+        // Mamoun, spelled with alef with hamza above
+        createRawContactWithDisplayName("\u0645\u0623\u0645\u0648\u0646");
+
+        // Mamoun is found by the middle of the name typed with a bare alef
+        assertStoredValue(buildSearchUri("\u0627\u0645\u0648\u0646"),
+                SearchSnippets.SNIPPET, null);
+    }
+
     public void testNameWithHyphen() {
         RawContactUtil.createRawContactWithName(mResolver, "First", "Last-name");
 

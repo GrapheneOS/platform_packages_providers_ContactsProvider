@@ -59,7 +59,7 @@ public class SearchIndexManager {
 
     public static final String PROPERTY_SEARCH_INDEX_VERSION = "search_index";
     private static final String ROW_ID_KEY = "rowid";
-    private static final int SEARCH_INDEX_VERSION = 3;
+    private static final int SEARCH_INDEX_VERSION = 4;
 
     private static final class ContactIndexQuery {
         public static final String[] COLUMNS = {
@@ -78,6 +78,8 @@ public class SearchIndexManager {
         public static final int SEPARATOR_PARENTHESES = 1;
         public static final int SEPARATOR_SLASH = 2;
         public static final int SEPARATOR_COMMA = 3;
+
+        private static final int MIN_NAME_SUFFIX_LENGTH = 2;
 
         private CappedStringBuilder mSbContent = new CappedStringBuilder(MAX_STRING_BUILDER_SIZE);
         private CappedStringBuilder mSbName = new CappedStringBuilder(MAX_STRING_BUILDER_SIZE);
@@ -230,6 +232,29 @@ public class SearchIndexManager {
                     }
                 }
             }
+
+            // FTS only matches from the beginning of a token, which makes it impossible
+            // to find an Arabic name by an inner part of it (typing the "sam" of "Hussam"
+            // finds nothing). Put every suffix of Arabic tokens into the index too, so
+            // that a match can start anywhere within the name.
+            for (String namePart : nameParts) {
+                if (containsArabicScript(namePart)) {
+                    for (int i = 1; i <= namePart.length() - MIN_NAME_SUFFIX_LENGTH; i++) {
+                        appendNameInternal(namePart.substring(i));
+                    }
+                }
+            }
+        }
+
+        private static boolean containsArabicScript(String token) {
+            for (int i = 0; i < token.length(); ) {
+                final int codePoint = token.codePointAt(i);
+                if (Character.UnicodeScript.of(codePoint) == Character.UnicodeScript.ARABIC) {
+                    return true;
+                }
+                i += Character.charCount(codePoint);
+            }
+            return false;
         }
 
         /**
