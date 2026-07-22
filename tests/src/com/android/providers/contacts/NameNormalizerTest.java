@@ -80,6 +80,55 @@ public class NameNormalizerTest extends TestCase {
         assertTrue(name2.equals(name1));
     }
 
+    public void testArabicAlefVariants() {
+        // Ahmad spelled with alef with hamza above vs. bare alef
+        final String name1 = NameNormalizer.normalize("\u0623\u062D\u0645\u062F");
+        final String name2 = NameNormalizer.normalize("\u0627\u062D\u0645\u062F");
+        assertTrue(name2.equals(name1));
+
+        // Ibrahim spelled with alef with hamza below vs. bare alef
+        final String name3 = NameNormalizer.normalize("\u0625\u0628\u0631\u0627\u0647\u064A\u0645");
+        final String name4 = NameNormalizer.normalize("\u0627\u0628\u0631\u0627\u0647\u064A\u0645");
+        assertTrue(name4.equals(name3));
+
+        // Amna spelled with alef with madda above vs. bare alef
+        final String name5 = NameNormalizer.normalize("\u0622\u0645\u0646\u0647");
+        final String name6 = NameNormalizer.normalize("\u0627\u0645\u0646\u0647");
+        assertTrue(name6.equals(name5));
+    }
+
+    public void testArabicTehMarbuta() {
+        // Hiba spelled with teh marbuta vs. heh
+        final String name1 = NameNormalizer.normalize("\u0647\u0628\u0629");
+        final String name2 = NameNormalizer.normalize("\u0647\u0628\u0647");
+        assertTrue(name2.equals(name1));
+    }
+
+    public void testArabicAlefMaksura() {
+        // Mustafa spelled with alef maksura vs. yeh
+        final String name1 = NameNormalizer.normalize("\u0645\u0635\u0637\u0641\u0649");
+        final String name2 = NameNormalizer.normalize("\u0645\u0635\u0637\u0641\u064A");
+        assertTrue(name2.equals(name1));
+    }
+
+    public void testArabicTashkeelAndTatweel() {
+        // Muhammad with tashkeel vs. without
+        final String name1 = NameNormalizer.normalize("\u0645\u062D\u064E\u0645\u064E\u0651\u062F");
+        final String name2 = NameNormalizer.normalize("\u0645\u062D\u0645\u062F");
+        assertTrue(name2.equals(name1));
+
+        // Muhammad with tatweel vs. without
+        final String name3 = NameNormalizer.normalize("\u0645\u062D\u0640\u0640\u0645\u062F");
+        assertTrue(name2.equals(name3));
+    }
+
+    public void testArabicDifferentNames() {
+        // Hussam vs. Hassan should remain distinct
+        final String name1 = NameNormalizer.normalize("\u062D\u0633\u0627\u0645");
+        final String name2 = NameNormalizer.normalize("\u062D\u0633\u0627\u0646");
+        assertFalse(name2.equals(name1));
+    }
+
     public void testComplexityCase() {
         assertTrue(NameNormalizer.compareComplexity("Helene", "helene") > 0);
     }

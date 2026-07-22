@@ -59,7 +59,7 @@ public class SearchIndexManager {
 
     public static final String PROPERTY_SEARCH_INDEX_VERSION = "search_index";
     private static final String ROW_ID_KEY = "rowid";
-    private static final int SEARCH_INDEX_VERSION = 2;
+    private static final int SEARCH_INDEX_VERSION = 3;
 
     private static final class ContactIndexQuery {
         public static final String[] COLUMNS = {

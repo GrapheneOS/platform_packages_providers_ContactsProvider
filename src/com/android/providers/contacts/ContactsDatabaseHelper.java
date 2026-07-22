@@ -155,7 +155,7 @@ public class ContactsDatabaseHelper extends SQLiteOpenHelper {
      *   1800-1899 C
      * </pre>
      */
-    static final int DATABASE_VERSION = 1800;
+    static final int DATABASE_VERSION = 1801;
     private static final int MINIMUM_SUPPORTED_VERSION = 700;
 
     @VisibleForTesting
@@ -2682,6 +2682,13 @@ public class ContactsDatabaseHelper extends SQLiteOpenHelper {
         if (isUpgradeRequired(oldVersion, newVersion, 1800)) {
             upgradeToVersion1800(db);
             oldVersion = 1800;
+        }
+
+        if (isUpgradeRequired(oldVersion, newVersion, 1801)) {
+            // NameNormalizer now folds Arabic letter variants, so the stored collation
+            // keys need to be regenerated.
+            upgradeNameLookup = true;
+            oldVersion = 1801;
         }
 
 

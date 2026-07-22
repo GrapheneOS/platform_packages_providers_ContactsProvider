@@ -394,6 +394,57 @@ public class SearchIndexManagerTest extends BaseContactsProvider2Test {
         assertStoredValue(buildSearchUri("ㄱㅣㄹㄷㅗㅇ"), SearchSnippets.SNIPPET, null);
     }
 
+    public void testSearchByArabicNameHamzaVariants() {
+        // Ahmad, spelled with alef with hamza above
+        createRawContactWithDisplayName("\u0623\u062D\u0645\u062F");
+        // Ibrahim, spelled with alef with hamza below
+        createRawContactWithDisplayName("\u0625\u0628\u0631\u0627\u0647\u064A\u0645");
+        // Amal, spelled with a bare alef
+        createRawContactWithDisplayName("\u0627\u0645\u0644");
+
+        // Ahmad is found when typed with a bare alef
+        assertStoredValue(buildSearchUri("\u0627\u062D\u0645\u062F"),
+                SearchSnippets.SNIPPET, null);
+
+        // Ibrahim is found when typed with a bare alef
+        assertStoredValue(buildSearchUri("\u0627\u0628\u0631\u0627\u0647\u064A\u0645"),
+                SearchSnippets.SNIPPET, null);
+
+        // Amal is found when typed with alef with hamza above
+        assertStoredValue(buildSearchUri("\u0623\u0645\u0644"),
+                SearchSnippets.SNIPPET, null);
+    }
+
+    public void testSearchByArabicNameTehMarbutaAndAlefMaksura() {
+        // Hiba, spelled with teh marbuta
+        createRawContactWithDisplayName("\u0647\u0628\u0629");
+        // Mustafa, spelled with alef maksura
+        createRawContactWithDisplayName("\u0645\u0635\u0637\u0641\u0649");
+        // Ali, spelled with yeh
+        createRawContactWithDisplayName("\u0639\u0644\u064A");
+
+        // Hiba is found when typed with a plain heh
+        assertStoredValue(buildSearchUri("\u0647\u0628\u0647"),
+                SearchSnippets.SNIPPET, null);
+
+        // Mustafa is found when typed with yeh
+        assertStoredValue(buildSearchUri("\u0645\u0635\u0637\u0641\u064A"),
+                SearchSnippets.SNIPPET, null);
+
+        // Ali is found when typed with alef maksura
+        assertStoredValue(buildSearchUri("\u0639\u0644\u0649"),
+                SearchSnippets.SNIPPET, null);
+    }
+
+    public void testSearchByArabicNameWithTashkeel() {
+        // Muhammad, spelled with tashkeel
+        createRawContactWithDisplayName("\u0645\u062D\u064E\u0645\u064E\u0651\u062F");
+
+        // Muhammad is found when typed without tashkeel
+        assertStoredValue(buildSearchUri("\u0645\u062D\u0645\u062F"),
+                SearchSnippets.SNIPPET, null);
+    }
+
     public void testNameWithHyphen() {
         RawContactUtil.createRawContactWithName(mResolver, "First", "Last-name");
 
