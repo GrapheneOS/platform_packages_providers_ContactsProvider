@@ -90,13 +90,30 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
             return ContactsProvider2.createEmptyCursor(uri, projection, false);
         }
 
+        String[] originalProjection = null;
+
+        if (projection != null) {
+            for (int i = 0; i < projection.length; ++i) {
+                if (ContactsContract.RawContacts.ACCOUNT_TYPE.equals(projection[i])) {
+                    if (originalProjection == null) {
+                        originalProjection = projection.clone();
+                    }
+                    // Both ACCOUNT_TYPE and PHOTO_URI columns are filtered out in queryFiltered(),
+                    // but queries with ACCOUNT_TYPE can fail in some cases when Contact Scopes is
+                    // enabled.
+                    // See https://github.com/GrapheneOS/os-issue-tracker/issues/8174
+                    projection[i] = ContactsContract.Data.PHOTO_URI;
+                }
+            }
+        }
+
         ContactScopesStorage css = ContactScopesStorage.deserialize(callerPackageState);
 
         final long token = Binder.clearCallingIdentity();
         try (Cursor c = queryFiltered(css, uri, projection, selection, selectionArgs, sortOrder)) {
             // create a new cursor to prevent direct connection between the caller and contacts
             // provider, and to remove cursor extras and other extraneous data
-            return cursorToMatrixCursor(c);
+            return cursorToMatrixCursor(c, originalProjection);
         } finally {
             Binder.restoreCallingIdentity(token);
         }
@@ -193,7 +210,7 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
             ContactsContract.Contacts.EXTRA_ADDRESS_BOOK_INDEX_TITLES,
     });
 
-    private MatrixCursor cursorToMatrixCursor(@Nullable Cursor c) {
+    private MatrixCursor cursorToMatrixCursor(@Nullable Cursor c, @Nullable String[] originalProjection) {
         if (c == null) {
             return null;
         }
@@ -221,7 +238,8 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
 
         Object[] columns = new Object[columnCount];
 
-        var mc = new MatrixCursor(columnNames, c.getCount());
+        var mc = new MatrixCursor(originalProjection != null ? originalProjection : columnNames,
+                c.getCount());
 
         while (c.moveToNext()) {
             Arrays.fill(columns, null);
