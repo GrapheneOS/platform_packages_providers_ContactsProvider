@@ -92,13 +92,10 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
 
         ContactScopesStorage css = ContactScopesStorage.deserialize(callerPackageState);
 
-        final long token = Binder.clearCallingIdentity();
         try (Cursor c = queryFiltered(css, uri, projection, selection, selectionArgs, sortOrder)) {
             // create a new cursor to prevent direct connection between the caller and contacts
             // provider, and to remove cursor extras and other extraneous data
             return cursorToMatrixCursor(c);
-        } finally {
-            Binder.restoreCallingIdentity(token);
         }
     }
 
