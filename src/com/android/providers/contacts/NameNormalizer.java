@@ -75,8 +75,58 @@ public class NameNormalizer {
      * of names.  It ignores non-letter, non-digit characters, and removes accents.
      */
     public static String normalize(String name) {
-        CollationKey key = getCompressingCollator().getCollationKey(lettersAndDigitsOnly(name));
+        CollationKey key = getCompressingCollator().getCollationKey(
+                foldArabicLetterVariants(lettersAndDigitsOnly(name)));
         return Hex.encodeHex(key.toByteArray(), true);
+    }
+
+    /**
+     * Folds Arabic letter variants that users treat as interchangeable when typing names.
+     * The collator distinguishes them even at primary strength, so they must be folded
+     * before the collation key is computed.
+     */
+    private static String foldArabicLetterVariants(String name) {
+        char[] letters = name.toCharArray();
+        int length = 0;
+        boolean changed = false;
+        for (int i = 0; i < letters.length; i++) {
+            char c = letters[i];
+            switch (c) {
+                case '\u0622':  // ARABIC LETTER ALEF WITH MADDA ABOVE
+                case '\u0623':  // ARABIC LETTER ALEF WITH HAMZA ABOVE
+                case '\u0625':  // ARABIC LETTER ALEF WITH HAMZA BELOW
+                case '\u0671':  // ARABIC LETTER ALEF WASLA
+                    c = '\u0627';  // ARABIC LETTER ALEF
+                    break;
+                case '\u0624':  // ARABIC LETTER WAW WITH HAMZA ABOVE
+                    c = '\u0648';  // ARABIC LETTER WAW
+                    break;
+                case '\u0626':  // ARABIC LETTER YEH WITH HAMZA ABOVE
+                case '\u0649':  // ARABIC LETTER ALEF MAKSURA
+                case '\u06CC':  // ARABIC LETTER FARSI YEH
+                    c = '\u064A';  // ARABIC LETTER YEH
+                    break;
+                case '\u0629':  // ARABIC LETTER TEH MARBUTA
+                    c = '\u0647';  // ARABIC LETTER HEH
+                    break;
+                case '\u06A9':  // ARABIC LETTER KEHEH
+                    c = '\u0643';  // ARABIC LETTER KAF
+                    break;
+                case '\u0640':  // ARABIC TATWEEL
+                    changed = true;
+                    continue;
+            }
+            if (c != letters[i]) {
+                changed = true;
+            }
+            letters[length++] = c;
+        }
+
+        if (changed) {
+            return new String(letters, 0, length);
+        }
+
+        return name;
     }
 
     /**
