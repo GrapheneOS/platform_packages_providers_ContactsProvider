@@ -24,6 +24,7 @@ import android.util.LongArray;
 import com.android.internal.app.RedirectedContentProvider;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 
 import libcore.util.EmptyArray;
@@ -35,6 +36,8 @@ import static android.ext.cscopes.ContactScope.TYPE_NUMBER;
 import static com.android.providers.contacts.ContactsProvider2.*;
 
 public class ScopedContactsProvider extends RedirectedContentProvider {
+
+    private static final String SORT_ORDER_LIMIT_DELIMITER = " LIMIT ";
 
     @Override
     public boolean onCreate() {
@@ -178,6 +181,32 @@ public class ScopedContactsProvider extends RedirectedContentProvider {
                 sel.append(origSelection);
             }
             sel.append(')');
+        }
+
+        // Some apps append LIMIT to sortOrder even though it is a separate SQL clause. Translate
+        // only a trailing non-negative decimal integer to the supported URI query parameter. The
+        // remaining sortOrder is still checked by strict SQL validation.
+        if (sortOrder != null
+                && uri.getQueryParameter(ContactsContract.LIMIT_PARAM_KEY) == null) {
+            final String normalizedSortOrder = sortOrder.toUpperCase(Locale.ROOT);
+            final int limitIndex = normalizedSortOrder.length() == sortOrder.length()
+                    ? normalizedSortOrder.lastIndexOf(SORT_ORDER_LIMIT_DELIMITER) : -1;
+            if (limitIndex > 0) {
+                int limit = -1;
+                try {
+                    limit = Integer.parseInt(sortOrder.substring(
+                            limitIndex + SORT_ORDER_LIMIT_DELIMITER.length()).trim());
+                } catch (NumberFormatException e) {
+                    // Leave limit invalid so that sortOrder remains unchanged.
+                }
+                if (limit >= 0 && !sortOrder.substring(0, limitIndex).trim().isEmpty()) {
+                    uri = uri.buildUpon()
+                            .appendQueryParameter(
+                                    ContactsContract.LIMIT_PARAM_KEY, String.valueOf(limit))
+                            .build();
+                    sortOrder = sortOrder.substring(0, limitIndex);
+                }
+            }
         }
 
         if (DEBUG) Log.w(TAG, "query selection " + sel);
