@@ -8233,7 +8233,20 @@ public class ContactsProvider2 extends AbstractContactsProvider
             String having, String limit, CancellationSignal cancellationSignal) {
         if (projection != null && projection.length == 1
                 && BaseColumns._COUNT.equals(projection[0])) {
-            qb.setProjectionMap(sCountProjectionMap);
+            // SQL selections can reference columns that are not returned. For example,
+            // SELECT COUNT(*) AS _count FROM data WHERE mimetype = ? returns only _count,
+            // but mimetype must remain valid for selection validation. Preserve the normal
+            // URI projection map and add the _count result mapping to it.
+            final Map<String, String> currentProjectionMap = qb.getProjectionMap();
+            final int countProjectionMapSize = sCountProjectionMap.size()
+                    + (currentProjectionMap != null ? currentProjectionMap.size() : 0);
+            final Map<String, String> countProjectionMap =
+                    new ArrayMap<>(countProjectionMapSize);
+            if (currentProjectionMap != null) {
+                countProjectionMap.putAll(currentProjectionMap);
+            }
+            countProjectionMap.putAll(sCountProjectionMap);
+            qb.setProjectionMap(countProjectionMap);
         }
         final Cursor c = qb.query(db, projection, selection, selectionArgs, groupBy, having,
                 sortOrder, limit, cancellationSignal);
