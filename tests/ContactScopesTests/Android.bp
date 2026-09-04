@@ -1,0 +1,20 @@
+filegroup {
+    name: "ContactScopesTestCommonSrcs",
+    srcs: ["common/src/**/*.java"],
+}
+
+java_test_host {
+    name: "ContactScopesTests",
+    srcs: ["host/src/**/*.java"],
+    libs: [
+        "tradefed",
+        "compatibility-tradefed",
+        "compatibility-host-util",
+    ],
+    test_suites: ["general-tests"],
+    device_common_data: [
+        ":ContactScopesTestAppSdk36",
+        ":ContactScopesTestAppSdk37",
+        ":ContactScopesTestWriter",
+    ],
+}

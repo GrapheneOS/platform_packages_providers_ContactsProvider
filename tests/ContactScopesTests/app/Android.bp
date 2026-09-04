@@ -1,0 +1,38 @@
+contact_scopes_test_app_srcs = [
+    ":ContactScopesTestCommonSrcs",
+    "src/**/*.java",
+]
+
+contact_scopes_test_app_static_libs = [
+    "androidx.test.ext.junit",
+    "androidx.test.runner",
+    "truth",
+]
+
+android_test_helper_app {
+    name: "ContactScopesTestAppSdk36",
+    srcs: contact_scopes_test_app_srcs,
+    manifest: "AndroidManifest.xml",
+    libs: ["android.test.runner.stubs"],
+    static_libs: contact_scopes_test_app_static_libs,
+    sdk_version: "current",
+    target_sdk_version: "36",
+    aaptflags: [
+        "--rename-manifest-package app.grapheneos.goscompat.contactscopes.sdk_36",
+        "--rename-instrumentation-target-package app.grapheneos.goscompat.contactscopes.sdk_36",
+    ],
+}
+
+android_test_helper_app {
+    name: "ContactScopesTestAppSdk37",
+    srcs: contact_scopes_test_app_srcs,
+    manifest: "AndroidManifest.xml",
+    libs: ["android.test.runner.stubs"],
+    static_libs: contact_scopes_test_app_static_libs,
+    sdk_version: "current",
+    target_sdk_version: "37",
+    aaptflags: [
+        "--rename-manifest-package app.grapheneos.goscompat.contactscopes.sdk_37",
+        "--rename-instrumentation-target-package app.grapheneos.goscompat.contactscopes.sdk_37",
+    ],
+}

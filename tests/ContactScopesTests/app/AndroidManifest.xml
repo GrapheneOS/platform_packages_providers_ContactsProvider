@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="app.grapheneos.goscompat.contactscopes">
+
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <application
+        android:debuggable="true"
+        android:label="Contact Scopes Tests">
+        <uses-library android:name="android.test.runner" />
+    </application>
+
+    <instrumentation
+        android:name="androidx.test.runner.AndroidJUnitRunner"
+        android:targetPackage="${applicationId}" />
+</manifest>

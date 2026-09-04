@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration description="Runs ContactScopesTests">
+    <target_preparer class="com.android.tradefed.targetprep.suite.SuiteApkInstaller">
+        <option name="cleanup-apks" value="true" />
+        <option name="install-arg" value="-r" />
+        <option name="install-arg" value="-d" />
+        <option name="install-arg" value="-t" />
+        <option name="test-file-name" value="ContactScopesTestAppSdk36.apk" />
+        <option name="test-file-name" value="ContactScopesTestAppSdk37.apk" />
+        <option name="test-file-name" value="ContactScopesTestWriter.apk" />
+    </target_preparer>
+
+    <test class="com.android.compatibility.common.tradefed.testtype.JarHostTest">
+        <option name="jar" value="ContactScopesTests.jar" />
+    </test>
+</configuration>

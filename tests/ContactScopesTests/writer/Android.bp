@@ -1,0 +1,17 @@
+android_test_helper_app {
+    name: "ContactScopesTestWriter",
+    srcs: [
+        ":ContactScopesTestCommonSrcs",
+        "src/**/*.java",
+    ],
+    manifest: "AndroidManifest.xml",
+    libs: ["android.test.runner.stubs"],
+    static_libs: [
+        "androidx.test.ext.junit",
+        "androidx.test.runner",
+        "truth",
+    ],
+    sdk_version: "current",
+    // Avoid RESTRICT_CONTACTS_CREATION_IN_ACCOUNTS for local test contacts.
+    target_sdk_version: "35",
+}
